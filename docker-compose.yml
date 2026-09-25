@@ -3,8 +3,9 @@ x-app: &app
   build: .
   init: true
   restart: "no"
-  env_file: ./config/app.env
   environment: &app-env
+    DATABASE_URL: ${DATABASE_URL}
+    REDIS_URL: ${REDIS_URL}
     APP_HOST: "0.0.0.0"
     APP_PORT: "8080"
     APP_MESSAGE: "Welcome to BARQ Systems"
@@ -14,7 +15,7 @@ x-app: &app
     timeout: 3s
     retries: 3
     start_period: 3s
-  networks: [frontend]
+  networks: [frontend, backend]
 services:
   postgres:
     image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
