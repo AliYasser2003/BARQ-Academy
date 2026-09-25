@@ -15,6 +15,18 @@ Only NGINX publishes a host port. PostgreSQL and Redis are not directly exposed.
 
 The current Compose configuration uses two Flask instances on port 8080. The final three-instance configuration on port 8090 must be demonstrated during the live video challenge before it is described as complete.
 
+## Documentation
+
+### Architecture
+- [System Architecture](docs/architecture/architecture.png)
+- [Architecture Source](docs/architecture/architecture.mmd)
+
+### Assessment Phases
+- [Phase 1 — Investigation](docs/phases/phase-1-investigation.md)
+- [Phase 2 — Fixes](docs/phases/phase-2-fixes.md)
+- [Phase 3 — Validation](docs/phases/phase-3-validation.md)
+
+
 ## Requirements
 
 - Linux or WSL
