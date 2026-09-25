@@ -18,8 +18,7 @@ The current Compose configuration uses two Flask instances on port 8080. The fin
 ## Documentation
 
 ### Architecture
-- [System Architecture](docs/architecture/architecture.png)
-- [Architecture Source](docs/architecture/architecture.mmd)
+- [Architecture](docs/architecture/architecture.png)
 
 ### Assessment Phases
 - [Phase 1 — Investigation](docs/phases/phase-1-investigation.md)
