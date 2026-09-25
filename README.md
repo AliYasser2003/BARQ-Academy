@@ -1,97 +1,213 @@
-<img src="assets/barq-logo.svg" alt="BARQ Systems" width="180">
+k
+# BARQ Systems — DevOps Internship Assessment
 
-# DevOps Internship Task - Starter v2
+A containerized Flask application with two backend instances behind NGINX, PostgreSQL for persistent records, and Redis for counter operations.
 
-**Due date:** ____________________
+## Current Architecture
 
-**Time window:** 4 calendar days from the invitation email date/time.
+- **NGINX:** public entry point at `http://127.0.0.1:8080`
+- **Flask:** `app-01` and `app-02`
+- **PostgreSQL:** backend-only service with a named data volume
+- **Redis:** backend-only service with append-only persistence enabled
+- **Networks:** NGINX connects to `frontend`; Flask connects to `frontend` and `backend`; PostgreSQL and Redis connect only to `backend`
 
-Read [the task](assessment/TASK.md), then [the API contract](assessment/APPLICATION.md).
-Everyone receives this same release. The environment is intentionally broken.
-Hidden issue types and count are not disclosed. Investigate this project; do not replace it.
+Only NGINX publishes a host port. PostgreSQL and Redis are not directly exposed.
 
-## Included
+The current Compose configuration uses two Flask instances on port 8080. The final three-instance configuration on port 8090 must be demonstrated during the live video challenge before it is described as complete.
 
-- Flask API, PostgreSQL, Redis, Docker and NGINX starter files.
-- Three historical logs, a question template and documentation templates.
-- App-only tests and a recorded challenge script.
-- Unimplemented validation, failure-test and backup/restore placeholders.
+## Requirements
 
-Use synthetic lab accounts/data only. Supplied values are for this disposable exercise,
-never for real services. Keep the lab on your local machine; do not expose it publicly.
+- Linux or WSL
+- Docker Engine or Docker Desktop with Linux containers
+- Docker Compose v2
+- Git
+- `curl`
+- Python 3
 
-## Before you start
+## Configuration
 
-- Linux or WSL2, Python 3.12, Git and Docker with Compose.
-- Docker Desktop must use Linux containers. Run shell scripts in Linux/WSL.
-- Suggested capacity: 2 CPU cores, 4 GB free RAM and 3 GB free disk, plus Docker overhead.
-- Internet for first downloads and GitHub. No cloud account or paid registry required.
-- Use a machine where container names app-01, app-02, nginx, postgres and redis are unused.
-  Do not delete someone else's containers to free those names.
-- Intended public port: 8080 before the video, 8090 after the live change.
-  If either is occupied, ask the organizer for a documented workstation exception.
+Create your local environment file:
 
-## Start
+```bash
+cp .env.example .env
+nano .env
+```
 
-Clone the supplied Git bundle/repository. Keep both release commits and the v2 baseline tag.
-Set your own Git name/email before making changes.
+Set the required values using your own local lab credentials:
+
+```dotenv
+POSTGRES_PASSWORD=replace_with_a_local_password
+DATABASE_URL=postgresql://barq_app:replace_with_a_local_password@postgres:5432/barq_tasks
+REDIS_URL=redis://redis:6379/0
+PUBLIC_PORT=8080
+```
+
+Use a URL-safe password or percent-encode special characters in the database URL. Keep `.env` private. Do not commit it or place credentials in source code or container images.
+
+## Build and Start
 
 From the repository root:
 
 ```bash
-git status
-git log -2 --oneline
-cp .env.example .env
-docker version
-docker compose version
-docker compose -p barq-assessment up --build -d
-docker compose -p barq-assessment ps -a
-docker compose -p barq-assessment logs --no-color
+docker compose config --quiet
+docker compose build
+docker compose up -d
+docker compose ps
 ```
 
-The initial environment is not expected to pass. Record what actually happens.
-The intended URL is http://127.0.0.1:8080; do not assume the starter configuration is correct.
-
-App-only checks use fake dependencies, not real SQL/Redis or Docker networking:
+Follow service logs:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m unittest discover -s tests -v
+docker compose logs --tail=100
+docker compose logs -f nginx app-01 app-02
 ```
 
-## Your work
-
-- Complete [assessment/TASK.md](assessment/TASK.md).
-- Implement validate.py, failure_test.py, backup.sh and restore.sh, or documented equivalents.
-  Placeholders deliberately exit 2; they are unfinished deliverables, not validation evidence.
-- Create .github/workflows/ci.yml yourself.
-- Complete the root report templates and docs/EVIDENCE_INDEX.md.
-- Add architecture.png or architecture.pdf.
-- Replace this README with copyable setup/build/run/test/failure/backup/restore/cleanup commands.
-- Commit as you work. Do not commit real secrets, backups, virtual environments or challenge state.
-
-## Recorded challenge
-
-Use the supplied video_challenge.sh unchanged. Read its code if needed; do not run it early.
-After repairing the environment, run it once, for the first time in the video working copy,
-during the continuous 12-18 minute recording. The script requires healthy services, both
-initial instances and the target network layout. Preflight failures make no runtime changes.
+Check the public endpoint:
 
 ```bash
-./video_challenge.sh
+curl -i http://127.0.0.1:8080/
 ```
 
-If you deliberately changed the project name, pass --project YOUR_PROJECT.
-An organizer-approved alternate local URL can be passed with --url http://127.0.0.1:PORT.
-The script touches only matching Compose-owned lab containers/networks.
-Keep the receipt in .assessment/challenge.json for the evidence index. Do not delete the
-one-run marker to retry. A local marker is not tamper-proof; ownership is judged from evidence.
-Do not use docker compose down to reset the runtime challenge.
+## API Checks
 
-## Stop safely
+Check the application endpoints:
 
-Outside the recorded challenge, docker compose -p barq-assessment down stops this lab.
-Do not use --volumes during persistence tests. Avoid global Docker prune/cleanup commands.
-Back up anything you need before removing containers; investigate whether data actually persists.
+```bash
+curl -i http://127.0.0.1:8080/health
+curl -i http://127.0.0.1:8080/ready
+curl -i http://127.0.0.1:8080/instance
+curl -i http://127.0.0.1:8080/records
+curl -i http://127.0.0.1:8080/counter
+```
+
+Create a PostgreSQL record:
+
+```bash
+curl -i -X POST http://127.0.0.1:8080/records \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"BARQ test record"}'
+```
+
+Repeat `/instance` requests to observe which backend responds:
+
+```bash
+for i in {1..10}; do
+  curl -s http://127.0.0.1:8080/instance
+  echo
+done
+```
+
+## Automated Validation
+
+Run the validation script:
+
+```bash
+python3 validate.py
+```
+
+Review the reported PASS/FAIL results. The script returns a non-zero exit code if validation fails.
+
+## Backend Failure and Recovery
+
+Run the failure test:
+
+```bash
+python3 failure_test.py
+```
+
+The test stops one backend, sends requests through NGINX, measures successful and failed requests, restores the backend, and checks that it serves traffic again.
+
+Review the output and record the observed availability and error count. Do not describe the service as having uninterrupted availability if requests failed during the test.
+
+## PostgreSQL Backup and Restore
+
+Create and verify a backup:
+
+```bash
+./backup.sh
+```
+
+The script creates a timestamped custom-format dump under `backups/`. Backups are local evidence and should not be committed.
+
+Restore a selected backup into the isolated test database:
+
+```bash
+./restore.sh backups/your_backup_file.dump
+```
+
+Replace the example filename with the actual filename printed by `backup.sh`.
+
+The restore script uses `barq_restore_test` and does not overwrite the original `barq_tasks` database. It leaves the test database in place after verification.
+
+## Persistence Test
+
+Create a record and note its ID:
+
+```bash
+curl -s -X POST http://127.0.0.1:8080/records \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Persistence verification"}'
+```
+
+Recreate the application containers while retaining the PostgreSQL volume:
+
+```bash
+docker compose up -d --force-recreate app-01 app-02
+```
+
+Then recreate PostgreSQL without deleting the volume:
+
+```bash
+docker compose up -d --force-recreate postgres
+```
+
+Check `/records` after each recreation and confirm the record remains present.
+
+**Never use `docker compose down -v` during persistence testing.**
+
+## GitHub Actions
+
+The workflow is located at `.github/workflows/ci.yml` and runs on pushes and pull requests.
+
+It checks the Compose configuration, builds the images, starts the services, waits for readiness, and runs `validate.py`. A validation failure causes the workflow to fail.
+
+A green CI run confirms that the configured checks passed in the GitHub Actions environment. It does not prove production readiness, continuous availability, or completion of the live video challenge.
+
+## Troubleshooting
+
+Check service state and logs:
+
+```bash
+docker compose ps
+docker compose logs --tail=100 nginx app-01 app-02
+docker compose logs --tail=100 postgres redis
+docker compose config --quiet
+```
+
+If a service is unhealthy, inspect its logs and configuration, address the cause, and then start the services again:
+
+```bash
+docker compose up -d
+docker compose ps
+```
+
+## Stop Services Safely
+
+Stop and remove the Compose containers and networks:
+
+```bash
+docker compose down
+```
+
+This command does not remove the named PostgreSQL volume. Do not add `-v` unless you intentionally want to delete the database volume and have confirmed that doing so is safe.
+
+## Documentation and Evidence
+
+- [Troubleshooting journal](troubleshooting.md)
+- [Log analysis](log_analysis.md)
+- [Technical decisions](decisions.md)
+- [Security review](security_review.md)
+- [AI usage](AI_USAGE.md)
+- [Evidence index](docs/EVIDENCE_INDEX.md)
+- Architecture deliverable: `architecture.png` or `architecture.pdf`
+The architecture diagram and evidence index must reflect the final demonstrated setup. Do not claim the three-instance port-8090 configuration is complete until it has been demonstrated live.
