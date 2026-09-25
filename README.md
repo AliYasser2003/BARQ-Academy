@@ -21,9 +21,9 @@ The current Compose configuration uses two Flask instances on port 8080. The fin
 - [Architecture.drawio](Architecture/Architecture.drawio.png)
 
 ### Assessment Phases
-- [Phase 1 — Investigation](docs/phases/phase-1-investigation.md)
-- [Phase 2 — Fixes](docs/phases/phase-2-fixes.md)
-- [Phase 3 — Validation](docs/phases/phase-3-validation.md)
+- [Phase 1 — Investigation](Phasess/BARQ_Phase_1_Investigation.docx)
+- [Phase 2 — Fixes](Phasess/BARQ_Phase_2_Fix_Report.docx)
+- [Phase 3 — Validation](Phasess/BARQ_Phase_3_Validation_Progress_Report.docx)
 
 
 ## Requirements
