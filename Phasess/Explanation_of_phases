@@ -1,0 +1,90 @@
+# Phase 1 — Investigation
+
+## 1. Objective
+Describe the purpose of the investigation.
+
+## 2. Initial System Architecture
+Describe the original services and their relationships.
+
+## 3. Investigation Method
+Document the commands, logs, and checks used.
+
+## 4. Issues Identified
+For each issue:
+- Issue:
+- Evidence:
+- Root cause:
+- Impact:
+
+## 5. Findings
+Summarize the confirmed findings.
+
+## 6. Conclusion
+Explain what needed to be fixed in Phase 2.
+
+
+
+
+# Phase 2 — Fixes
+
+## 1. Objective
+Explain the purpose of the remediation phase.
+
+## 2. Fixes Implemented
+
+### Fix 1
+- Original issue:
+- Root cause:
+- Change implemented:
+- Files modified:
+- Verification:
+
+### Fix 2
+- Original issue:
+- Root cause:
+- Change implemented:
+- Files modified:
+- Verification:
+
+## 3. Regression Checks
+Document tests performed after the fixes.
+
+## 4. Commits
+List the relevant commit hashes.
+
+## 5. Conclusion
+Summarize the completed fixes.
+
+
+
+
+# Phase 3 — Validation
+
+## 1. Objective
+Explain how the system was validated.
+
+## 2. Validation Environment
+Document the Docker, application, and database environment.
+
+## 3. Test Results
+
+| Test | Expected Result | Actual Result | Status |
+|---|---|---|---|
+| Application health | | | |
+| Database connectivity | | | |
+| Persistence | | | |
+| Backup and restore | | | |
+| Failure and recovery | | | |
+| CI validation | | | |
+
+## 4. Persistence Evidence
+Document application and database recreation tests.
+
+## 5. Failure and Recovery
+Document the failure scenario, diagnosis, recovery, and results.
+
+## 6. CI Evidence
+Document the workflow and its validation results.
+
+## 7. Conclusion
+Summarize the confirmed validation results.
