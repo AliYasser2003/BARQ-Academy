@@ -1,0 +1,66 @@
+name: BARQ CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    env:
+      POSTGRES_USER: barq_app
+      POSTGRES_DB: barq_tasks
+      POSTGRES_PASSWORD: ci_only_password
+      DATABASE_URL: postgresql://barq_app:ci_only_password@postgres:5432/barq_tasks
+      REDIS_URL: redis://redis:6379/0
+      PUBLIC_PORT: "8080"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Compose configuration
+        run: docker compose config --quiet
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Start services
+        run: docker compose up -d
+
+      - name: Wait for readiness
+        shell: bash
+        run: |
+          for attempt in {1..60}; do
+            if curl --fail --silent http://localhost:8080/ready >/dev/null; then
+              echo "Application is ready."
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "Application did not become ready in time."
+          docker compose ps
+          docker compose logs --tail=100
+          exit 1
+
+      - name: Run validation
+        run: python3 validate.py
+
+      - name: Show service status
+        if: always()
+        run: docker compose ps
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs --tail=150
+
+      - name: Stop services
+        if: always()
+        run: docker compose down
