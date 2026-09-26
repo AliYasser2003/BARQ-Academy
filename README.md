@@ -5,8 +5,8 @@ A containerized Flask application with two backend instances behind NGINX, Postg
 
 ## Current Architecture
 
-- **NGINX:** public entry point at `http://127.0.0.1:8080`
-- **Flask:** `app-01` and `app-02`
+- **NGINX:** public entry point at `http://127.0.0.1:8090`
+- **Flask:** `app-01`, `app-02` and `app-03`
 - **PostgreSQL:** backend-only service with a named data volume
 - **Redis:** backend-only service with append-only persistence enabled
 - **Networks:** NGINX connects to `frontend`; Flask connects to `frontend` and `backend`; PostgreSQL and Redis connect only to `backend`
